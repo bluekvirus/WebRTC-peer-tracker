@@ -71,6 +71,7 @@
 				console.log('[local stream ready]');
 			}
 			else {
+				if (rtc.isInitiator) return;
 				console.log('[remote stream added]', e.type, e);
 			}
 			//delete e.mediaElement;
@@ -118,7 +119,17 @@
 			//rtc.transmitRoomOnce = true; --> need to send sd & roomid to server! 
 			//									since previousely onlined peers won't get the sd from roomid  
 			var sd = rtc.open(perspectiveRoom);
-			showStatus('Hosting: ' + perspectiveRoom);
+
+			//http://bit.ly/webrtc-screen-extension
+			if(rtc.UA.isChrome)
+				rtc.DetectRTC.screen.getChromeExtensionStatus(function(status){
+					if (status == 'not-installed') 
+						showStatus('Error: ' + 'you need to install <a target="_blank" href="http://bit.ly/webrtc-screen-extension">webrtc-screen-extension</a> or use Firefox');
+					else 
+						showStatus('Hosting: ' + perspectiveRoom);
+				});
+			else 			
+				showStatus('Hosting: ' + perspectiveRoom);
 			//now when the host starts [> the stream, the broadcasting begins.
 			//we use the default room-id broadcasting mech here, ignoring returned sd.
 		});
