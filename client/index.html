@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebRTC ScreenSharing</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="css/kube.css" />
+    <link rel="stylesheet" type="text/css" href="bower_components/fontawesome/css/font-awesome.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+
+    <script type="text/javascript" src="bower_components/modernizr/modernizr.js"></script>
+</head>
+<body>
+
+	<!-- app main template -->
+	<header id="header" class="group">
+		<h1 class="left">ScreenSharing.io</h1>
+		<span class="label label-outline label-red right" id="my-status">offline</span>
+		<h5 class="right" id="peerid" style="margin-right:1em;"></h5>
+	</header>
+	<div id="body">
+		<!-- Join or Host control bar -->
+		<div class="units-row end" id="controlbar-start">
+			<div class="unit-50">
+				<div class="units-row">
+					<input class="unit-70" type="search" placeholder="Room Number..." id="roomId">
+					<button class="btn btn-black btn-outline unit-30" id="join">Join</button>	
+				</div>
+			</div>
+			<button class="btn btn-black unit-50" id="host">Host</button>
+		</div>
+
+		<!-- Runtime Control bar -->
+		<div class="units-row" id="controlbar-end">
+			<span class="unit-50" id="status"></span>
+			<button class="btn btn-red unit-50" id="stop">Drop</button>
+		</div>
+
+		<!-- Runtime Screen/Panels -->
+	    <div class="units-row end">
+	    	<div class="unit-80">
+				<video width="100%" id="screen" controls autoplay></video>	    		
+	    	</div>
+	    	<div class="unit-20">
+	    		<!-- host: participants listing -->
+	    		<!-- joined: text pad? -->
+	    	</div>
+	    </div>
+	</div>
+	<footer id="footer" class="group">
+		<nav class="navbar navbar-right">
+			<ul>
+				<li><a href="#Help">Help</a></li>
+				<li><a href="#About">About</a></li>
+				<li><a href="#Blog">Blog</a></li>
+				<li><a href="#Join Us">Contribute</a></li>
+				<li><a href="#Issues">Report Issues</a></li>
+			</ul>			
+		</nav>
+		<span class="left">© ScreenSharing.io 2015</span>
+	</footer>
+
+	<!-- scripts -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="js/kube.js"></script>
+    <script type="text/javascript" src="js/primus.js"></script>
+    <script type="text/javascript" src="bower_components/rtcmulticonnection/RTCMultiConnection.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+</body>
+</html>
