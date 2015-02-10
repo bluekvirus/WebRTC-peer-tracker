@@ -5,9 +5,9 @@
 }
 
 #body {
-	padding: 0 4em;
+	padding: 0 5em;
 }
 
-#footer {
+#footer .navbar, #footer .copyright {
 	font-size: 0.8em;
 }

@@ -4,6 +4,12 @@
  * Room == Session
  * Floor == RTCMultiConn's Room/Channel concept (not data channel)
  *
+ * FF (Hosting): 
+ * 	media.getusermedia.screensharing.enabled = true
+ * 	media.getusermedia.screensharing.allowed_domains + app domain or ip
+ * Chrome (Hosting):
+ * 	install plugin by clicking the prompted link.
+ * 
  * @author Tim Lauv 02.09.2015
  */
 (function(){
@@ -45,6 +51,10 @@
 		    if (onMessageCallbacks[data.channel]) {
 		        onMessageCallbacks[data.channel](data.message);
 		    }
+		    //mark dropped peer
+		    if(data.message.left){
+		    	delete rtc.peers[data.message.userid];
+		    }
 		});
 
 		rtc.openSignalingChannel = function (config) {
@@ -83,8 +93,11 @@
 		var rooms = {};
 		rtc.onNewSession = function(s) {
 			console.log('[room info]', s); //upon receiving room info (up, left...)
-			if(rooms[s.sessionid]) return;
-			rooms[s.sessionid] = s.userid;
+			if(s.left){ 
+				delete rooms[s.sessionid];
+				return;
+			}
+			else rooms[s.sessionid] = s.userid;
 		};
 
 		rtc.connect();
@@ -109,6 +122,20 @@
 				return alert('Room [' + perspectiveRoom + '] exists, please use other names...');
 			}
 
+			// List peer users for host
+			var $peers = $('#peers');
+			function renderPeers(){
+
+			}
+			function onPeerChanged(){
+				for (var pid in rtc.peers) {
+					console.log(pid, rtc.peers[pid]);
+				}
+				renderPeers();
+			}
+			/* TBI: watch for rtc.peers change */
+
+
 			// Customize what to share:
 			rtc.session = {
 				//video:true,
@@ -129,9 +156,11 @@
 						showStatus('Hosting: ' + perspectiveRoom);
 				});
 			else 			
-				showStatus('Hosting: ' + perspectiveRoom);
+				showStatus('<span class="label label-outline label-blue"><i class="fa fa-bullhorn"></i> Hosting</span> ' + perspectiveRoom);
 			//now when the host starts [> the stream, the broadcasting begins.
 			//we use the default room-id broadcasting mech here, ignoring returned sd.
+			
+			window.rtc = rtc;
 		});
 		$('#join').click(function joinScreenShare(){
 			var targetRoom = $roomId.val() || 'default-room';
@@ -140,7 +169,7 @@
 			}
 
 			rtc.join(targetRoom);
-			showStatus('Watching: ' + targetRoom);
+			showStatus('<span class="label label-outline label-yellow"><i class="fa fa-slideshare"></i> Watching</span> ' + targetRoom);
 		});
 
 		$('#stop').click(function onStop(){
