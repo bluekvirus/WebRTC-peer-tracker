@@ -21,7 +21,7 @@
 			window.open(location.href);
 		});
 
-		/* Setup signaling channel */
+		/*==================== Setup signaling channel ====================*/
 		var primus = Primus.connect('/primus');
 		var $tag = $('#my-status');
 
@@ -41,11 +41,13 @@
 			$tag.removeClass('label-green label-red');
 		});
 
-		/* Create RTC conn (pick a appname/floor) & signaling channel adapter*/
+		/*=========== Create RTC conn (pick a appname/floor) & signaling channel adapter ===========*/
 		var onMessageCallbacks = {};
 		var rtc = new RTCMultiConnection('ShareScreen.io');
-		$('#peerid').html(['peer:', rtc.userid].join(' '));
 		rtc.skipLogs();
+		rtc.media.min(1280,720);
+		$('#peerid').html(['peer:', rtc.userid].join(' '));
+		
 		
 		primus.on('data', function onMessage(data){
 		    if (data.sender == rtc.userid) return;
@@ -58,8 +60,9 @@
 		    if(data.message.left){
 		    	//console.log(data);
 		    	rtc.remove(data.message.userid);
-		    	//hack 4065 openSignalingChannel - onmessage
+		    	//hack based on 4065 openSignalingChannel - onmessage (fixing the host left problem)
 		    	delete rtc.sessionDescriptions[data.message.sessionid];
+		    	rtc.numberOfSessions--;
 		    }
 		});
 
@@ -97,7 +100,6 @@
 
 		/* TBI: list available rooms, BUG::onNewSession might not fire for previousely onlined client -- fixed*/
 		var rooms = {};
-		rtc.autoCloseEntireSession = true;
 		rtc.onNewSession = function(s) {
 			console.log('[room info]', s); //upon receiving room info (up, left...)
 			if(s.left){ 
@@ -113,7 +115,7 @@
 
 		rtc.connect();
 
-		/* Hook up UI controls */
+		/*========================= Hook up UI controls =========================*/
 		$roomId = $('#roomId');
 		function showStatus(roomId){
 			$('#controlbar-start').hide();
@@ -127,6 +129,8 @@
 			$('#screen').stop();
 		}
 		hideStatus();
+
+		//A. Host
 		$('#host').click(function hostScreenShare(){
 			var perspectiveRoom = $roomId.val() || 'default-room';
 			if(rooms[perspectiveRoom]){
@@ -134,21 +138,21 @@
 			}
 
 			// List peer users for host
-			// [hack 3357 updateSocket(), 3934 connection.remove() + onPeersChanged]
+			// [hack 3355 updateSocket(), 3932 connection.remove() + onPeersChanged]
 			var $peers = $('#peers');
 			function renderPeers(){
 				$peers.empty();
 				var count = 0;
 				for (var pid in rtc.peers) {
 					if (pid == rtc.userid) continue;
-					$peers.append('<li>' + pid + '</li>');
+					$peers.append('<li>' + '<i class="icon-' + rtc.peers[pid].userinfo.browser + '"></i> ' + pid + '</li>');
 					count ++;
 				}
 				if(count){
-					$('#screen').removeClass('unit-100').addClass('unit-80');
+					$('#screen').removeClass('unit-100').addClass('unit-70');
 					$peers.prepend('<li style="list-style:none;">Participants <span class="badge badge-green right">'+ count +'</span></li>');
 				}else
-					$('#screen').removeClass('unit-80').addClass('unit-100');
+					$('#screen').removeClass('unit-70').addClass('unit-100');
 			}
 			rtc.onPeersChanged = function(){
 				renderPeers();
@@ -161,6 +165,8 @@
 			    screen: true,
 			    oneway: true
 			};
+			rtc.autoCloseEntireSession = true;
+			rtc.interval = 5000;
 			//rtc.transmitRoomOnce = true; --> need to send sd & roomid to server! 
 			//									since previousely onlined peers won't get the sd from roomid  
 			var sd = rtc.open(perspectiveRoom);
@@ -180,6 +186,8 @@
 			
 			window.rtc = rtc;
 		});
+
+		//B. Join
 		$('#join').click(function joinScreenShare(){
 			var targetRoom = $roomId.val() || 'default-room';
 			if(!rooms[targetRoom]){
@@ -190,6 +198,7 @@
 			showStatus('<span class="label label-outline label-yellow"><i class="fa fa-slideshare"></i> Watching</span> ' + targetRoom);
 		});
 
+		//C. Drop
 		$('#stop').click(function onStop(){
 			rtc.leave();
 			location.reload(false);
