@@ -4,6 +4,10 @@
 	padding: 2em 4em;
 }
 
+#header #more-peers {
+	cursor: pointer;
+}
+
 #body {
 	padding: 0 5em;
 }

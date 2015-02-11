@@ -17,6 +17,9 @@
 	window.app = window.app || {};
 
 	$(function domReady(){
+		$('#more-peers').click(function openMorePeers(){
+			window.open(location.href);
+		});
 
 		/* Setup signaling channel */
 		var primus = Primus.connect('/primus');
@@ -122,19 +125,14 @@
 				return alert('Room [' + perspectiveRoom + '] exists, please use other names...');
 			}
 
-			// List peer users for host
+			// TBI: List peer users for host
 			var $peers = $('#peers');
 			function renderPeers(){
-
-			}
-			function onPeerChanged(){
+				$peers.empty();
 				for (var pid in rtc.peers) {
-					console.log(pid, rtc.peers[pid]);
+					$peers.append('<li>' + pid + '</li>');
 				}
-				renderPeers();
 			}
-			/* TBI: watch for rtc.peers change */
-
 
 			// Customize what to share:
 			rtc.session = {
