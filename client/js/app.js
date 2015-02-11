@@ -56,7 +56,10 @@
 		    }
 		    //mark dropped peer
 		    if(data.message.left){
-		    	delete rtc.peers[data.message.userid];
+		    	//console.log(data);
+		    	rtc.remove(data.message.userid);
+		    	//hack 4065 openSignalingChannel - onmessage
+		    	delete rtc.sessionDescriptions[data.message.sessionid];
 		    }
 		});
 
@@ -92,11 +95,16 @@
 		
 		};
 
-		/* TBI: list available rooms */
+		/* TBI: list available rooms, BUG::onNewSession might not fire for previousely onlined client -- fixed*/
 		var rooms = {};
+		rtc.autoCloseEntireSession = true;
 		rtc.onNewSession = function(s) {
 			console.log('[room info]', s); //upon receiving room info (up, left...)
 			if(s.left){ 
+				// if(!rooms[s.sessionid]){
+				// 	rtc.refresh(); //reset the connection.
+				// 	return;
+				// }
 				delete rooms[s.sessionid];
 				return;
 			}
@@ -125,14 +133,26 @@
 				return alert('Room [' + perspectiveRoom + '] exists, please use other names...');
 			}
 
-			// TBI: List peer users for host
+			// List peer users for host
+			// [hack 3357 updateSocket(), 3934 connection.remove() + onPeersChanged]
 			var $peers = $('#peers');
 			function renderPeers(){
 				$peers.empty();
+				var count = 0;
 				for (var pid in rtc.peers) {
+					if (pid == rtc.userid) continue;
 					$peers.append('<li>' + pid + '</li>');
+					count ++;
 				}
+				if(count){
+					$('#screen').removeClass('unit-100').addClass('unit-80');
+					$peers.prepend('<li style="list-style:none;">Participants <span class="badge badge-green right">'+ count +'</span></li>');
+				}else
+					$('#screen').removeClass('unit-80').addClass('unit-100');
 			}
+			rtc.onPeersChanged = function(){
+				renderPeers();
+			};
 
 			// Customize what to share:
 			rtc.session = {
@@ -171,7 +191,7 @@
 		});
 
 		$('#stop').click(function onStop(){
-			//rtc.leave();
+			rtc.leave();
 			location.reload(false);
 		});
 
